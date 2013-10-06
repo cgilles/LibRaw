@@ -2982,8 +2982,11 @@ void CLASS crop_masked_pixels()
   unsigned 
 #ifndef LIBRAW_LIBRARY_BUILD
     r, raw_pitch = raw_width*2,
-#endif
     c, m, mblack[8], zero, val;
+#else
+    c, m, zero, val;
+#define mblack imgdata.color.black_stat
+#endif
 
 #ifndef LIBRAW_LIBRARY_BUILD
   if (load_raw == &CLASS phase_one_load_raw ||
@@ -3051,6 +3054,9 @@ mask_set:
   } else if (zero < mblack[4] && mblack[5] && mblack[6] && mblack[7])
     FORC4 cblack[c] = mblack[c] / mblack[4+c];
 }
+#ifdef LIBRAW_LIBRARY_BUILD
+#undef mblack
+#endif
 
 void CLASS remove_zeroes()
 {
@@ -7198,6 +7204,8 @@ void CLASS adobe_coeff (const char *t_make, const char *t_model)
 	{ 7575,-2159,-571,-3722,11341,2725,-1434,2819,6271 } },
     { "Olympus E-PM2", 0, 0,
 	{ 8380,-2630,-639,-2887,10725,2496,-627,1427,5438 } },
+    {"Olympus E-M1", 0, 0,
+     { 9527,-3328,-633,-1918,9411,2048,-347,1519,5082 } },
     { "Olympus E-M5", 0, 0xfe1,
 	{ 8380,-2630,-639,-2887,10725,2496,-627,1427,5438 } },
     { "Olympus SP350", 0, 0,
@@ -7909,10 +7917,8 @@ void CLASS identify()
     parse_sinar_ia();
   else if (!memcmp (head,"\0MRM",4))
     parse_minolta(0);
-#ifdef LIBRAW_DEMOSAIC_PACK_GPL2
   else if (!memcmp (head,"FOVb",4))
     parse_foveon();
-#endif
   else if (!memcmp (head,"CI",2))
     parse_cine();
   else
